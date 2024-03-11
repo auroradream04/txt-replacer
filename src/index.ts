@@ -1,14 +1,23 @@
 import fs from 'fs';
+import path from 'path';
+import keys from "../keys/key.json";
+console.log(keys)
 
-const keys = {
-    "Hello": "Hi",
-    "Up": "Down",
-    "Big": "Small",
-};
+const articlesDir = './articles';
+const outDir = './out';
+const files = fs.readdirSync(articlesDir);
 
-const article = fs.readFileSync('./articles/1.txt', 'utf-8');
+files.forEach((file) => {
+    const articlePath = path.join(articlesDir, file);
+    const article = fs.readFileSync(articlePath, 'utf-8');
 
-function replaceKeysWithValues(text:any, keys:any) {
+    const modifiedArticle = replaceKeysWithValues(article, keys);
+
+    const outputPath = path.join(outDir, file);
+    fs.writeFileSync(outputPath, modifiedArticle);
+});
+
+function replaceKeysWithValues(text: any, keys: any) {
     let result = text;
     for (const [key, value] of Object.entries(keys)) {
         const regex = new RegExp(key, 'gi');
@@ -16,7 +25,3 @@ function replaceKeysWithValues(text:any, keys:any) {
     }
     return result;
 }
-
-const modifiedArticle = replaceKeysWithValues(article, keys);
-
-fs.writeFileSync('./out/1.txt', modifiedArticle);
