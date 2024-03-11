@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import keys from "../keys/key.json";
-console.log(keys)
 
 const articlesDir = './articles';
 const outDir = './out';
