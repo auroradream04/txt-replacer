@@ -1,3 +1,7 @@
+out/
+articles/
+keys/
+
 # Logs
 logs
 *.log

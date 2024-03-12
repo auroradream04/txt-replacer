@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import keys from "../keys/key.json";
+import iconv from 'iconv-lite';
 
 const articlesDir = './articles';
 const outDir = './out';
@@ -8,7 +9,8 @@ const files = fs.readdirSync(articlesDir);
 
 files.forEach((file) => {
     const articlePath = path.join(articlesDir, file);
-    const article = fs.readFileSync(articlePath, 'utf-8');
+    const rawArticle = fs.readFileSync(articlePath, 'binary');
+    const article = iconv.decode(Buffer.from(rawArticle, 'binary'), 'GB18030');
 
     const modifiedArticle = replaceKeysWithValues(article, keys);
 
