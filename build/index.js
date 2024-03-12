@@ -46,22 +46,57 @@ var readline_1 = __importDefault(require("readline"));
 var articlesDir = './articles';
 var outDir = './out';
 var files = fs_1.default.readdirSync(articlesDir);
-var keys = JSON.parse(fs_1.default.readFileSync('./keywords/keys.json', 'utf8'));
-var titleKeys = fs_1.default.readFileSync('./keywords/titleKeys.txt').toString().split("\r\n");
-function ReplaceFiles(isPrefix) {
-    files.forEach(function (file) {
-        var articlePath = path_1.default.join(articlesDir, file);
-        var rawArticle = fs_1.default.readFileSync(articlePath, 'binary');
-        var article = iconv_lite_1.default.decode(Buffer.from(rawArticle, 'binary'), 'GB18030');
-        var modifiedArticle = replaceKeysWithValues(article, keys);
-        if (isPrefix) {
-            prefixKeyword(modifiedArticle, file);
-        }
-        else {
-            var outputPath = path_1.default.join(outDir, file);
-            fs_1.default.writeFileSync(outputPath, modifiedArticle);
-            console.log("File replaced: " + file);
-        }
+var keys = JSON.parse(fs_1.default.readFileSync('./config/keys.json', 'utf8'));
+var titleKeys = fs_1.default.readFileSync('./config/titleKeys.txt').toString().split("\r\n");
+var header = fs_1.default.readFileSync('./config/headers.txt').toString().split("\r\n");
+var footer = fs_1.default.readFileSync('./config/footers.txt').toString().split("\r\n");
+console.log(titleKeys);
+function ReplaceFiles(isPrefix, isModifyContent) {
+    var _this = this;
+    files.forEach(function (file) { return __awaiter(_this, void 0, void 0, function () {
+        var articlePath, rawArticle, article, modifiedArticle, outputPath;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    articlePath = path_1.default.join(articlesDir, file);
+                    rawArticle = fs_1.default.readFileSync(articlePath, 'binary');
+                    article = iconv_lite_1.default.decode(Buffer.from(rawArticle, 'binary'), 'GB18030');
+                    modifiedArticle = replaceKeysWithValues(article, keys);
+                    if (!isModifyContent) return [3 /*break*/, 2];
+                    return [4 /*yield*/, modifyContent(modifiedArticle, isPrefix)];
+                case 1:
+                    modifiedArticle = _a.sent();
+                    return [3 /*break*/, 3];
+                case 2:
+                    modifiedArticle = [modifiedArticle];
+                    _a.label = 3;
+                case 3:
+                    if (isPrefix) {
+                        prefixKeyword(modifiedArticle, file, isModifyContent);
+                    }
+                    else {
+                        outputPath = path_1.default.join(outDir, file);
+                        fs_1.default.writeFileSync(outputPath, modifiedArticle[0]);
+                        console.log("File replaced: " + file);
+                    }
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+}
+function modifyContent(article, isPrefix) {
+    return __awaiter(this, void 0, void 0, function () {
+        var modifiedArticle, titleCount, i, headerDice, footerDice;
+        return __generator(this, function (_a) {
+            modifiedArticle = [];
+            titleCount = isPrefix ? titleKeys.length : 1;
+            for (i = 0; i < titleCount; i++) {
+                headerDice = Math.floor(Math.random() * header.length);
+                footerDice = Math.floor(Math.random() * footer.length);
+                modifiedArticle.push(header[headerDice] + "\n" + article + "\n" + footer[footerDice]);
+            }
+            return [2 /*return*/, modifiedArticle];
+        });
     });
 }
 function replaceKeysWithValues(text, keys) {
@@ -73,25 +108,27 @@ function replaceKeysWithValues(text, keys) {
     }
     return result;
 }
-function prefixKeyword(modifiedArticle, file) {
+function prefixKeyword(modifiedArticle, file, isModifyContent) {
     return __awaiter(this, void 0, void 0, function () {
-        var _loop_1, _i, titleKeys_1, key;
+        var len, _loop_1, i, _loop_2, _i, titleKeys_1, key;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _loop_1 = function (key) {
+                    if (!isModifyContent) return [3 /*break*/, 5];
+                    len = modifiedArticle.length;
+                    _loop_1 = function (i) {
                         var outputPath;
                         return __generator(this, function (_b) {
                             switch (_b.label) {
                                 case 0:
-                                    outputPath = path_1.default.join(outDir, key + file);
+                                    outputPath = path_1.default.join(outDir, titleKeys[i] + file);
                                     return [4 /*yield*/, new Promise(function (resolve, reject) {
-                                            fs_1.default.writeFile(outputPath, modifiedArticle, function (err) {
+                                            fs_1.default.writeFile(outputPath, modifiedArticle[i], function (err) {
                                                 if (err) {
                                                     reject(err);
                                                 }
                                                 else {
-                                                    console.log("File replaced ".concat(key + file));
+                                                    console.log("File replaced ".concat(titleKeys[i] + file));
                                                     resolve(null);
                                                 }
                                             });
@@ -102,19 +139,55 @@ function prefixKeyword(modifiedArticle, file) {
                             }
                         });
                     };
-                    _i = 0, titleKeys_1 = titleKeys;
+                    i = 0;
                     _a.label = 1;
                 case 1:
-                    if (!(_i < titleKeys_1.length)) return [3 /*break*/, 4];
-                    key = titleKeys_1[_i];
-                    return [5 /*yield**/, _loop_1(key)];
+                    if (!(i < len)) return [3 /*break*/, 4];
+                    return [5 /*yield**/, _loop_1(i)];
                 case 2:
                     _a.sent();
                     _a.label = 3;
                 case 3:
-                    _i++;
+                    i++;
                     return [3 /*break*/, 1];
-                case 4: return [2 /*return*/];
+                case 4: return [3 /*break*/, 9];
+                case 5:
+                    _loop_2 = function (key) {
+                        var outputPath;
+                        return __generator(this, function (_c) {
+                            switch (_c.label) {
+                                case 0:
+                                    outputPath = path_1.default.join(outDir, key + file);
+                                    return [4 /*yield*/, new Promise(function (resolve, reject) {
+                                            fs_1.default.writeFile(outputPath, modifiedArticle[0], function (err) {
+                                                if (err) {
+                                                    reject(err);
+                                                }
+                                                else {
+                                                    console.log("File replaced ".concat(key + file));
+                                                    resolve(null);
+                                                }
+                                            });
+                                        })];
+                                case 1:
+                                    _c.sent();
+                                    return [2 /*return*/];
+                            }
+                        });
+                    };
+                    _i = 0, titleKeys_1 = titleKeys;
+                    _a.label = 6;
+                case 6:
+                    if (!(_i < titleKeys_1.length)) return [3 /*break*/, 9];
+                    key = titleKeys_1[_i];
+                    return [5 /*yield**/, _loop_2(key)];
+                case 7:
+                    _a.sent();
+                    _a.label = 8;
+                case 8:
+                    _i++;
+                    return [3 /*break*/, 6];
+                case 9: return [2 /*return*/];
             }
         });
     });
@@ -138,7 +211,8 @@ function main() {
                     console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
                     console.log("1. Replace keys in the articles");
                     console.log("2. Replace keys in the articles and prefix keywords to the title");
-                    console.log("3. Exit");
+                    console.log("3. Replace keys in the articles, prefix keywords to the title, and randomize content");
+                    console.log("4. Exit");
                     return [4 /*yield*/, askQuestion('Command: ')];
                 case 1:
                     answer = _a.sent();
@@ -149,6 +223,9 @@ function main() {
                         ReplaceFiles(true);
                     }
                     else if (answer === "3") {
+                        ReplaceFiles(true, true);
+                    }
+                    else if (answer === "4") {
                         isDone = true;
                         rl.close();
                     }
