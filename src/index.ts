@@ -1,11 +1,13 @@
 import fs from 'fs';
 import path from 'path';
-import keys from "../keys/key.json";
+// import keys from "../keys/key.json";
 import iconv from 'iconv-lite';
 
 const articlesDir = './articles';
 const outDir = './out';
 const files = fs.readdirSync(articlesDir);
+const keys = JSON.parse(fs.readFileSync('./keys/key.json', 'utf8'));
+console.log(keys)
 
 files.forEach((file) => {
     const articlePath = path.join(articlesDir, file);

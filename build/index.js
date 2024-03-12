@@ -5,16 +5,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var fs_1 = __importDefault(require("fs"));
 var path_1 = __importDefault(require("path"));
-var key_json_1 = __importDefault(require("../keys/key.json"));
+// import keys from "../keys/key.json";
 var iconv_lite_1 = __importDefault(require("iconv-lite"));
 var articlesDir = './articles';
 var outDir = './out';
 var files = fs_1.default.readdirSync(articlesDir);
+var keys = fs_1.default.readFileSync('./keys/key.json', 'utf8');
 files.forEach(function (file) {
     var articlePath = path_1.default.join(articlesDir, file);
     var rawArticle = fs_1.default.readFileSync(articlePath, 'binary');
     var article = iconv_lite_1.default.decode(Buffer.from(rawArticle, 'binary'), 'GB18030');
-    var modifiedArticle = replaceKeysWithValues(article, key_json_1.default);
+    var modifiedArticle = replaceKeysWithValues(article, keys);
     var outputPath = path_1.default.join(outDir, file);
     fs_1.default.writeFileSync(outputPath, modifiedArticle);
 });
