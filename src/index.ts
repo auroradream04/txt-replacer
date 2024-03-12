@@ -6,9 +6,11 @@ import readline from 'readline';
 const articlesDir = './articles';
 const outDir = './out';
 const files = fs.readdirSync(articlesDir);
-const keys = JSON.parse(fs.readFileSync('./keys/key.json', 'utf8'));
+const keys = JSON.parse(fs.readFileSync('./keywords/keys.json', 'utf8'));
+const titleKeys = fs.readFileSync('./keywords/titleKeys.txt').toString().split("\r\n")
 
-function ReplaceFiles() {
+
+function ReplaceFiles(isPrefix?: boolean) {
     files.forEach((file) => {
         const articlePath = path.join(articlesDir, file);
         const rawArticle = fs.readFileSync(articlePath, 'binary');
@@ -16,9 +18,13 @@ function ReplaceFiles() {
 
         const modifiedArticle = replaceKeysWithValues(article, keys);
 
-        const outputPath = path.join(outDir, file);
-        fs.writeFileSync(outputPath, modifiedArticle);
-        console.log("File replaced: " + file)
+        if (isPrefix) {
+            prefixKeyword(modifiedArticle, file)
+        } else {
+            const outputPath = path.join(outDir, file);
+            fs.writeFileSync(outputPath, modifiedArticle);
+            console.log("File replaced: " + file)
+        }
     })
 }
 
@@ -31,6 +37,22 @@ function replaceKeysWithValues(text: any, keys: any) {
     return result;
 }
 
+async function prefixKeyword(modifiedArticle: string, file: string) {
+    for (const key of titleKeys) {
+        const outputPath = path.join(outDir, key + file);
+
+        await new Promise((resolve, reject) => {
+            fs.writeFile(outputPath, modifiedArticle, (err) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    console.log(`File replaced ${key + file}`);
+                    resolve(null);
+                }
+            });
+        });
+    }
+}
 // Keep the process alive by creating a readline interface
 const rl = readline.createInterface({
     input: process.stdin,
@@ -47,13 +69,16 @@ async function main() {
     while (!isDone) {
         console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         console.log("1. Replace keys in the articles");
-        console.log("2. Exit");
+        console.log("2. Replace keys in the articles and prefix keywords to the title")
+        console.log("3. Exit");
 
         const answer = await askQuestion('Command: ');
 
         if (answer === "1") {
             ReplaceFiles();
         } else if (answer === "2") {
+            ReplaceFiles(true)
+        } else if (answer === "3") {
             isDone = true;
             rl.close();
         }

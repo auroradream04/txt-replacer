@@ -46,16 +46,22 @@ var readline_1 = __importDefault(require("readline"));
 var articlesDir = './articles';
 var outDir = './out';
 var files = fs_1.default.readdirSync(articlesDir);
-var keys = JSON.parse(fs_1.default.readFileSync('./keys/key.json', 'utf8'));
-function ReplaceFiles() {
+var keys = JSON.parse(fs_1.default.readFileSync('./keywords/keys.json', 'utf8'));
+var titleKeys = fs_1.default.readFileSync('./keywords/titleKeys.txt').toString().split("\r\n");
+function ReplaceFiles(isPrefix) {
     files.forEach(function (file) {
         var articlePath = path_1.default.join(articlesDir, file);
         var rawArticle = fs_1.default.readFileSync(articlePath, 'binary');
         var article = iconv_lite_1.default.decode(Buffer.from(rawArticle, 'binary'), 'GB18030');
         var modifiedArticle = replaceKeysWithValues(article, keys);
-        var outputPath = path_1.default.join(outDir, file);
-        fs_1.default.writeFileSync(outputPath, modifiedArticle);
-        console.log("File replaced: " + file);
+        if (isPrefix) {
+            prefixKeyword(modifiedArticle, file);
+        }
+        else {
+            var outputPath = path_1.default.join(outDir, file);
+            fs_1.default.writeFileSync(outputPath, modifiedArticle);
+            console.log("File replaced: " + file);
+        }
     });
 }
 function replaceKeysWithValues(text, keys) {
@@ -66,6 +72,52 @@ function replaceKeysWithValues(text, keys) {
         result = result.replace(regex, value);
     }
     return result;
+}
+function prefixKeyword(modifiedArticle, file) {
+    return __awaiter(this, void 0, void 0, function () {
+        var _loop_1, _i, titleKeys_1, key;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _loop_1 = function (key) {
+                        var outputPath;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0:
+                                    outputPath = path_1.default.join(outDir, key + file);
+                                    return [4 /*yield*/, new Promise(function (resolve, reject) {
+                                            fs_1.default.writeFile(outputPath, modifiedArticle, function (err) {
+                                                if (err) {
+                                                    reject(err);
+                                                }
+                                                else {
+                                                    console.log("File replaced ".concat(key + file));
+                                                    resolve(null);
+                                                }
+                                            });
+                                        })];
+                                case 1:
+                                    _b.sent();
+                                    return [2 /*return*/];
+                            }
+                        });
+                    };
+                    _i = 0, titleKeys_1 = titleKeys;
+                    _a.label = 1;
+                case 1:
+                    if (!(_i < titleKeys_1.length)) return [3 /*break*/, 4];
+                    key = titleKeys_1[_i];
+                    return [5 /*yield**/, _loop_1(key)];
+                case 2:
+                    _a.sent();
+                    _a.label = 3;
+                case 3:
+                    _i++;
+                    return [3 /*break*/, 1];
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
 }
 // Keep the process alive by creating a readline interface
 var rl = readline_1.default.createInterface({
@@ -85,7 +137,8 @@ function main() {
                     if (!!isDone) return [3 /*break*/, 2];
                     console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
                     console.log("1. Replace keys in the articles");
-                    console.log("2. Exit");
+                    console.log("2. Replace keys in the articles and prefix keywords to the title");
+                    console.log("3. Exit");
                     return [4 /*yield*/, askQuestion('Command: ')];
                 case 1:
                     answer = _a.sent();
@@ -93,6 +146,9 @@ function main() {
                         ReplaceFiles();
                     }
                     else if (answer === "2") {
+                        ReplaceFiles(true);
+                    }
+                    else if (answer === "3") {
                         isDone = true;
                         rl.close();
                     }
