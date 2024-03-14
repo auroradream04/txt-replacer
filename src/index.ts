@@ -3,8 +3,8 @@ import path from 'path';
 import iconv from 'iconv-lite';
 import readline from 'readline';
 
-const contentGenerated = 10;
-const contentSectionLimit = 5;
+let contentGenerated = 10;
+let contentSectionLimit = 5;
 const articlesDir = './articles';
 const outDir = './out';
 const htmlOutDir = './htmlOut';
@@ -102,9 +102,11 @@ async function prefixKeyword(modifiedArticle: string[], file: string, isModifyCo
     }
 }
 
-function createArticle(articles: string[], arrLen: number, title: string) {
+function createArticle(articles: string[], arrLen: number, title: string, contentSectionLimit: number) {
     let article = startHtml;
 
+    article += `<h1 style="font-size: 22px; font-style: bold">${title}</h1>`;
+    
     for (let i = 0; i < contentSectionLimit; i++) {
         let index = Math.floor(Math.random() * arrLen);
         article += `<p>${articles[index]}</p>`;
@@ -115,7 +117,7 @@ function createArticle(articles: string[], arrLen: number, title: string) {
     return article;
 }
 
-async function createHTMLContent() {
+async function createHTMLContent(contentGenerated: number, contentSectionLimit: number) {
     console.log("HTML Content Replacement")
     const contentStr = readFileSync('./config/htmlContent.json').toString()
     const contentArr = JSON.parse(contentStr);
@@ -126,7 +128,7 @@ async function createHTMLContent() {
 
     for (let i = 0; i < contentGenerated; i++) {
         const titleIndex = Math.floor(Math.random() * titleLen);
-        const newArticle = createArticle(contentArr, arrLen, titleArr[titleIndex]);
+        const newArticle = createArticle(contentArr, arrLen, titleArr[titleIndex], contentSectionLimit);
         const outputPath = path.join(htmlOutDir, titleArr[titleIndex] + i + ".html");
         fs.writeFileSync(outputPath, newArticle);
         console.log("File replaced: " + titleArr[titleIndex] + i + ".html")
@@ -164,7 +166,25 @@ async function main() {
         } else if (answer === "3") {
             ReplaceFiles(true, true);
         } else if (answer === "4") {
-            createHTMLContent();
+            console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+            console.log ("How many HTML files do you want to generate?");
+            const tempContentGenerated = parseInt(await askQuestion('Number of files: '));
+            console.log("How many content sections do you want to generate for each HTML file?");
+            const tempContentSectionLimit = parseInt(await askQuestion('Number of content sections: '));
+
+            if (tempContentGenerated > 0 && typeof(tempContentGenerated) === 'number') {
+                contentGenerated = tempContentGenerated;
+            } else {
+                console.log("Invalid input for number of files. Defaulting to 10.");
+            }
+
+            if (tempContentSectionLimit > 0 && typeof(tempContentSectionLimit) === 'number') {
+                contentSectionLimit = tempContentSectionLimit;
+            } else {
+                console.log("Invalid input for number of content sections. Defaulting to 5.");
+            }
+
+            createHTMLContent(contentGenerated, contentSectionLimit);
         } else {
             isDone = true;
             rl.close();
