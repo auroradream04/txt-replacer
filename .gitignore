@@ -1,6 +1,7 @@
 out/
 articles/
 keys/
+config/
 
 # Logs
 logs
