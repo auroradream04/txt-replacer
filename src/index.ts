@@ -7,11 +7,14 @@ const contentGenerated = 10;
 const contentSectionLimit = 5;
 const articlesDir = './articles';
 const outDir = './out';
+const htmlOutDir = './htmlOut';
 const files = fs.readdirSync(articlesDir);
 const keys = JSON.parse(fs.readFileSync('./config/keys.json', 'utf8'));
 const titleKeys = fs.readFileSync('./config/titleKeys.txt').toString().split("\r\n")
 const header = fs.readFileSync('./config/headers.txt').toString().split("\r\n")
 const footer = fs.readFileSync('./config/footers.txt').toString().split("\r\n")
+const startHtml = readFileSync('./config/startHtml.txt').toString()
+const endHtml = readFileSync('./config/endHtml.txt').toString()
 
 
 console.log(titleKeys)
@@ -100,12 +103,14 @@ async function prefixKeyword(modifiedArticle: string[], file: string, isModifyCo
 }
 
 function createArticle(articles: string[], arrLen: number, title: string) {
-    let article = `<h1 style="font-size:22px; font-style:bold;">${title}</h1>`;
+    let article = startHtml;
 
     for (let i = 0; i < contentSectionLimit; i++) {
         let index = Math.floor(Math.random() * arrLen);
         article += `<p>${articles[index]}</p>`;
     }
+
+    article += endHtml;
 
     return article;
 }
@@ -119,14 +124,13 @@ async function createHTMLContent() {
     const arrLen = contentArr.length;
     const titleLen = titleArr.length;
 
-    
     for (let i = 0; i < contentGenerated; i++) {
         const titleIndex = Math.floor(Math.random() * titleLen);
         const newArticle = createArticle(contentArr, arrLen, titleArr[titleIndex]);
-        console.log(newArticle)
+        const outputPath = path.join(htmlOutDir, titleArr[titleIndex] + i + ".html");
+        fs.writeFileSync(outputPath, newArticle);
+        console.log("File replaced: " + titleArr[titleIndex] + i + ".html")
     }
-
-
 }
 
 
