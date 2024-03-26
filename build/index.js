@@ -1,27 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -62,25 +39,27 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var fs_1 = __importStar(require("fs"));
+var fs_1 = __importDefault(require("fs"));
 var path_1 = __importDefault(require("path"));
 var iconv_lite_1 = __importDefault(require("iconv-lite"));
 var readline_1 = __importDefault(require("readline"));
+var themes_1 = require("./themes");
 var contentGenerated = 10;
 var contentSectionLimit = 5;
 var articlesDir = './articles';
 var outDir = './out';
 var htmlOutDir = './htmlOut';
+var configDir = './config';
 var files = fs_1.default.readdirSync(articlesDir);
 var keys = JSON.parse(fs_1.default.readFileSync('./config/keys.json', 'utf8'));
 var titleKeys = fs_1.default.readFileSync('./config/titleKeys.txt').toString().split("\r\n");
 var header = fs_1.default.readFileSync('./config/headers.txt').toString().split("\r\n");
 var footer = fs_1.default.readFileSync('./config/footers.txt').toString().split("\r\n");
-var startHtml = (0, fs_1.readFileSync)('./config/startHtml.txt').toString();
-var endHtml = (0, fs_1.readFileSync)('./config/endHtml.txt').toString();
+var themes = ["1. Theme 1 (Paripesax)"];
 console.log(titleKeys);
-function ReplaceFiles(isPrefix, isModifyContent) {
+function ReplaceFiles(isPrefix, isModifyContent, isSaveHTML) {
     var _this = this;
+    var htmlContent = "";
     files.forEach(function (file) { return __awaiter(_this, void 0, void 0, function () {
         var articlePath, rawArticle, article, modifiedArticle, outputPath;
         return __generator(this, function (_a) {
@@ -90,6 +69,9 @@ function ReplaceFiles(isPrefix, isModifyContent) {
                     rawArticle = fs_1.default.readFileSync(articlePath, 'binary');
                     article = iconv_lite_1.default.decode(Buffer.from(rawArticle, 'binary'), 'GB18030');
                     modifiedArticle = replaceKeysWithValues(article, keys);
+                    if (isSaveHTML) {
+                        htmlContent += modifiedArticle;
+                    }
                     if (!isModifyContent) return [3 /*break*/, 2];
                     return [4 /*yield*/, modifyContent(modifiedArticle, isPrefix)];
                 case 1:
@@ -111,6 +93,9 @@ function ReplaceFiles(isPrefix, isModifyContent) {
             }
         });
     }); });
+    if (isSaveHTML) {
+        fs_1.default.writeFileSync(path_1.default.join(configDir, "htmlContent.txt"), htmlContent);
+    }
 }
 function modifyContent(article, isPrefix) {
     return __awaiter(this, void 0, void 0, function () {
@@ -220,30 +205,37 @@ function prefixKeyword(modifiedArticle, file, isModifyContent) {
         });
     });
 }
-function createArticle(articles, arrLen, title, contentSectionLimit) {
-    var article = startHtml;
-    article += "<h1 style=\"font-size: 22px; font-style: bold\">".concat(title, "</h1>");
+function createArticle(articles, arrLen, title, contentSectionLimit, theme) {
+    var content = "";
     for (var i = 0; i < contentSectionLimit; i++) {
         var index = Math.floor(Math.random() * arrLen);
-        article += "<p>".concat(articles[index], "</p>");
+        content += "<p>".concat(articles[index], "</p><br>");
     }
-    article += endHtml;
+    var article = "";
+    if (theme === 1) {
+        article = (0, themes_1.theme1)(title, content);
+    }
     return article;
 }
-function createHTMLContent(contentGenerated, contentSectionLimit) {
+function createHTMLContent(contentGenerated, contentSectionLimit, theme) {
     return __awaiter(this, void 0, void 0, function () {
-        var contentStr, contentArr, titleStr, titleArr, arrLen, titleLen, i, titleIndex, newArticle, outputPath;
+        var contentArr, titleArr, arrLen, titleLen, i, titleIndex, newArticle, outputPath;
         return __generator(this, function (_a) {
             console.log("HTML Content Replacement");
-            contentStr = (0, fs_1.readFileSync)('./config/htmlContent.json').toString();
-            contentArr = JSON.parse(contentStr);
-            titleStr = (0, fs_1.readFileSync)('./config/htmlTitle.json').toString();
-            titleArr = JSON.parse(titleStr);
+            contentArr = fs_1.default.readFileSync('./config/htmlContent.txt')
+                .toString()
+                .split(/\r?\n/)
+                .filter(function (line) { return line.trim() !== ''; });
+            console.log(contentArr);
+            titleArr = fs_1.default.readFileSync('./config/htmlTitle.txt')
+                .toString()
+                .split(/\r?\n/)
+                .filter(function (line) { return line.trim() !== ''; });
             arrLen = contentArr.length;
             titleLen = titleArr.length;
             for (i = 0; i < contentGenerated; i++) {
                 titleIndex = Math.floor(Math.random() * titleLen);
-                newArticle = createArticle(contentArr, arrLen, titleArr[titleIndex], contentSectionLimit);
+                newArticle = createArticle(contentArr, arrLen, titleArr[titleIndex], contentSectionLimit, theme);
                 outputPath = path_1.default.join(htmlOutDir, titleArr[titleIndex] + i + ".html");
                 fs_1.default.writeFileSync(outputPath, newArticle);
                 console.log("File replaced: " + titleArr[titleIndex] + i + ".html");
@@ -263,44 +255,55 @@ console.log("Welcome to txt-replacer tool!");
 console.log("This tool will replace all the keys in the articles with the values from the keys.json file.");
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var answer, tempContentGenerated, _a, tempContentSectionLimit, _b;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
+        var answer, tempContentGenerated, _a, tempContentSectionLimit, _b, theme, _c;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
                 case 0:
-                    if (!!isDone) return [3 /*break*/, 9];
+                    if (!!isDone) return [3 /*break*/, 11];
                     console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
                     console.log("1. Replace keys in the articles");
-                    console.log("2. Replace keys in the articles and prefix keywords to the title");
-                    console.log("3. Replace keys in the articles, prefix keywords to the title, and randomize content");
-                    console.log("4. Create HTML Content");
-                    console.log("5. Exit");
+                    console.log("2. Replace keys in the articles and save HTML content");
+                    console.log("3. Replace keys in the articles and prefix keywords to the title");
+                    console.log("4. Replace keys in the articles, prefix keywords to the title, and randomize content");
+                    console.log("5. Create HTML Content");
+                    console.log("6. Exit");
                     return [4 /*yield*/, askQuestion('Command: ')];
                 case 1:
-                    answer = _c.sent();
+                    answer = _d.sent();
                     if (!(answer === "1")) return [3 /*break*/, 2];
                     ReplaceFiles();
-                    return [3 /*break*/, 8];
+                    return [3 /*break*/, 10];
                 case 2:
                     if (!(answer === "2")) return [3 /*break*/, 3];
-                    ReplaceFiles(true);
-                    return [3 /*break*/, 8];
+                    ReplaceFiles(false, false, true);
+                    return [3 /*break*/, 10];
                 case 3:
                     if (!(answer === "3")) return [3 /*break*/, 4];
-                    ReplaceFiles(true, true);
-                    return [3 /*break*/, 8];
+                    ReplaceFiles(true);
+                    return [3 /*break*/, 10];
                 case 4:
-                    if (!(answer === "4")) return [3 /*break*/, 7];
+                    if (!(answer === "4")) return [3 /*break*/, 5];
+                    ReplaceFiles(true, true);
+                    return [3 /*break*/, 10];
+                case 5:
+                    if (!(answer === "5")) return [3 /*break*/, 9];
                     console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
                     console.log("How many HTML files do you want to generate?");
                     _a = parseInt;
                     return [4 /*yield*/, askQuestion('Number of files: ')];
-                case 5:
-                    tempContentGenerated = _a.apply(void 0, [_c.sent()]);
+                case 6:
+                    tempContentGenerated = _a.apply(void 0, [_d.sent()]);
                     console.log("How many content sections do you want to generate for each HTML file?");
                     _b = parseInt;
                     return [4 /*yield*/, askQuestion('Number of content sections: ')];
-                case 6:
-                    tempContentSectionLimit = _b.apply(void 0, [_c.sent()]);
+                case 7:
+                    tempContentSectionLimit = _b.apply(void 0, [_d.sent()]);
+                    console.log("What theme do you want to use?");
+                    themes.forEach(function (theme) { return console.log(theme); });
+                    _c = parseInt;
+                    return [4 /*yield*/, askQuestion('Theme: ')];
+                case 8:
+                    theme = _c.apply(void 0, [_d.sent()]);
                     if (tempContentGenerated > 0 && typeof (tempContentGenerated) === 'number') {
                         contentGenerated = tempContentGenerated;
                     }
@@ -313,14 +316,14 @@ function main() {
                     else {
                         console.log("Invalid input for number of content sections. Defaulting to 5.");
                     }
-                    createHTMLContent(contentGenerated, contentSectionLimit);
-                    return [3 /*break*/, 8];
-                case 7:
+                    createHTMLContent(contentGenerated, contentSectionLimit, theme);
+                    return [3 /*break*/, 10];
+                case 9:
                     isDone = true;
                     rl.close();
-                    _c.label = 8;
-                case 8: return [3 /*break*/, 0];
-                case 9: return [2 /*return*/];
+                    _d.label = 10;
+                case 10: return [3 /*break*/, 0];
+                case 11: return [2 /*return*/];
             }
         });
     });

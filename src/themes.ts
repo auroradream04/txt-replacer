@@ -27,11 +27,11 @@ export function theme1(title: string, content: string) {
     
     
     
-        <script src="static/js/jquery-1.8.1.min.js"></script>
+        <script src="./static/js/jquery-1.8.1.min.js"></script>
     
-        <script src="static/js/bootstrap.min.js"></script>
+        <script src="./static/js/bootstrap.min.js"></script>
     
-        <script src="static/js/twitter-bootstrap-hover-dropdown.js"></script>
+        <script src="./static/js/twitter-bootstrap-hover-dropdown.js"></script>
     
     
     </head>
@@ -40,7 +40,7 @@ export function theme1(title: string, content: string) {
         <div class="page-head"><a name="top"></a>
             <div class="container hidden-phone">
                 <div class="pull-left">
-                    <img src="static/picture/logo_pc.jpg">
+                    <img src="./static/picture/logo_pc.jpg">
                 </div>
                 <div class="head-search pull-right text-right">
                     <form class="form-search hidden-phone margin-top10">
@@ -54,7 +54,7 @@ export function theme1(title: string, content: string) {
     
             <div class="container-fluid visible-phone">
                 <div class="row-fluid">
-                    <div class="span12"><img src="static/picture/logo_pc.jpg"></div>
+                    <div class="span12"><img src="./static/picture/logo_pc.jpg"></div>
                 </div>
             </div>
     
@@ -80,7 +80,7 @@ export function theme1(title: string, content: string) {
                                 </div>
                             </td>
                             <td class="text-right"><a href="javascript:void(0);" data-toggle="collapse"
-                                    data-target=".mobile-menus"><img src="static/picture/btn-collapse-white.png"></a></td>
+                                    data-target=".mobile-menus"><img src="./static/picture/btn-collapse-white.png"></a></td>
                         </tr>
                     </tbody>
                 </table>
@@ -122,10 +122,10 @@ export function theme1(title: string, content: string) {
                         <li data-target="#myCarousel" data-slide-to="3" class=""></li>
                     </ol>
                     <div class="carousel-inner">
-                        <div class="item"><img src="static/picture/headbanner_1.jpg" style="width:100%;"></div>
-                        <div class="item active"><img src="static/picture/headbanner_2.jpg" style="width:100%;"></div>
-                        <div class="item"><img src="static/picture/headbanner_3.jpg" style="width:100%;"></div>
-                        <div class="item"><img src="static/picture/headbanner_4.jpg" style="width:100%;"></div>
+                        <div class="item"><img src="./static/picture/headbanner_1.jpg" style="width:100%;"></div>
+                        <div class="item active"><img src="./static/picture/headbanner_2.jpg" style="width:100%;"></div>
+                        <div class="item"><img src="./static/picture/headbanner_3.jpg" style="width:100%;"></div>
+                        <div class="item"><img src="./static/picture/headbanner_4.jpg" style="width:100%;"></div>
                     </div>
                 </div>
                 <script type="text/javascript">
@@ -166,11 +166,11 @@ export function theme1(title: string, content: string) {
     
                                         <div class="side-sort-list">
                                             <div>
-                                                <img src="static/picture/bullet_start.png">
+                                                <img src="./static/picture/bullet_start.png">
                                                 <a href="artlist1.html">行业资讯</a>
                                             </div>
                                             <div>
-                                                <img src="static/picture/bullet_start.png">
+                                                <img src="./static/picture/bullet_start.png">
                                                 <a href="artlist2.html">公司资讯</a>
                                             </div>
                                         </div>
@@ -201,7 +201,7 @@ export function theme1(title: string, content: string) {
                                     <td class="left"></td>
                                     <td class="center">
     
-                                        <img src="static/picture/1507211752491421.jpg"
+                                        <img src="./static/picture/1507211752491421.jpg"
                                             class="img-w100 hidden-phone margin-bottom10">
                                         <div class="desc-text">
                                             地址：广东省普宁市洪阳镇富袋村风吹旗料场少记工业区<br>电话：0663-2515779<br>传真：0663-2516669<br>张先生：13923549110<br>李先生：13822992074
@@ -301,32 +301,32 @@ export function theme1(title: string, content: string) {
     
     
     
-        <script src="static/js/knockout-2.1.0.js"></script>
+        <script src="./static/js/knockout-2.1.0.js"></script>
     
-        <script src="static/js/knockout.mapping-2.4.1.js"></script>
+        <script src="./static/js/knockout.mapping-2.4.1.js"></script>
     
-        <script src="static/js/utils.js"></script>
+        <script src="./static/js/utils.js"></script>
     
-        <script src="static/js/com.js"></script>
+        <script src="./static/js/com.js"></script>
     
-        <script src="static/js/knockout.bingings.dev.js"></script>
-    
-    
-        <script src="static/js/jquery.validate.min.js"></script>
-    
-        <script src="static/js/messages_zh_dev.js"></script>
+        <script src="./static/js/knockout.bingings.dev.js"></script>
     
     
-        <script src="static/js/jquery-ui-dialog.dev.js"></script>
+        <script src="./static/js/jquery.validate.min.js"></script>
     
-        <script src="static/js/bootstrap-dialog.js"></script>
+        <script src="./static/js/messages_zh_dev.js"></script>
     
     
-        <script src="static/js/com.viewModel.js"></script>
+        <script src="./static/js/jquery-ui-dialog.dev.js"></script>
     
-        <script src="static/js/com.datatable.js"></script>
+        <script src="./static/js/bootstrap-dialog.js"></script>
     
-        <script src="static/js/com.templatelist.js"></script>
+    
+        <script src="./static/js/com.viewModel.js"></script>
+    
+        <script src="./static/js/com.datatable.js"></script>
+    
+        <script src="./static/js/com.templatelist.js"></script>
     
     
     </body>
