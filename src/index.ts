@@ -2,24 +2,27 @@ import fs, { readFileSync } from 'fs';
 import path from 'path';
 import iconv from 'iconv-lite';
 import readline from 'readline';
+import { theme1 } from './themes';
 
 let contentGenerated = 10;
 let contentSectionLimit = 5;
 const articlesDir = './articles';
 const outDir = './out';
 const htmlOutDir = './htmlOut';
+const configDir = './config';
 const files = fs.readdirSync(articlesDir);
 const keys = JSON.parse(fs.readFileSync('./config/keys.json', 'utf8'));
 const titleKeys = fs.readFileSync('./config/titleKeys.txt').toString().split("\r\n")
 const header = fs.readFileSync('./config/headers.txt').toString().split("\r\n")
 const footer = fs.readFileSync('./config/footers.txt').toString().split("\r\n")
-const startHtml = readFileSync('./config/startHtml.txt').toString()
-const endHtml = readFileSync('./config/endHtml.txt').toString()
+const themes = ["1. Theme 1 (Paripesax)"]
 
 
 console.log(titleKeys)
 
-function ReplaceFiles(isPrefix?: boolean, isModifyContent?: boolean) {
+
+function ReplaceFiles(isPrefix?: boolean, isModifyContent?: boolean, isSaveHTML?: boolean) {
+    let htmlContent = "";
     files.forEach(async (file) => {
         const articlePath = path.join(articlesDir, file);
         const rawArticle = fs.readFileSync(articlePath, 'binary');
@@ -27,6 +30,10 @@ function ReplaceFiles(isPrefix?: boolean, isModifyContent?: boolean) {
         let modifiedArticle;
 
         modifiedArticle = replaceKeysWithValues(article, keys);
+
+        if (isSaveHTML) {
+            htmlContent += modifiedArticle;
+        }
 
         if (isModifyContent) {
             modifiedArticle = await modifyContent(modifiedArticle, isPrefix);
@@ -42,6 +49,10 @@ function ReplaceFiles(isPrefix?: boolean, isModifyContent?: boolean) {
             console.log("File replaced: " + file)
         }
     })
+
+    if (isSaveHTML) {
+        fs.writeFileSync(path.join(configDir, "htmlContent.txt"), htmlContent);
+    }
 }
 
 async function modifyContent(article: string, isPrefix?: boolean): Promise<string[]> {
@@ -102,33 +113,44 @@ async function prefixKeyword(modifiedArticle: string[], file: string, isModifyCo
     }
 }
 
-function createArticle(articles: string[], arrLen: number, title: string, contentSectionLimit: number) {
-    let article = startHtml;
+function createArticle(articles: string[], arrLen: number, title: string, contentSectionLimit: number, theme: number) {
+    let content = "";
 
-    article += `<h1 style="font-size: 22px; font-style: bold">${title}</h1>`;
-    
     for (let i = 0; i < contentSectionLimit; i++) {
         let index = Math.floor(Math.random() * arrLen);
-        article += `<p>${articles[index]}</p>`;
+        content += `<p>${articles[index]}</p><br>`;
     }
 
-    article += endHtml;
+    let article = "";
+
+    if (theme === 1) {
+        article = theme1(title, content)
+    }
 
     return article;
 }
 
-async function createHTMLContent(contentGenerated: number, contentSectionLimit: number) {
+async function createHTMLContent(contentGenerated: number, contentSectionLimit: number, theme: number) {
     console.log("HTML Content Replacement")
-    const contentStr = readFileSync('./config/htmlContent.json').toString()
-    const contentArr = JSON.parse(contentStr);
-    const titleStr = readFileSync('./config/htmlTitle.json').toString()
-    const titleArr = JSON.parse(titleStr);
+    //const contentStr = readFileSync('./config/htmlContent.json').toString()
+    //const contentArr = JSON.parse(contentStr);
+    const contentArr = fs.readFileSync('./config/htmlContent.txt')
+        .toString()
+        .split(/\r?\n/)
+        .filter(line => line.trim() !== '');
+    console.log(contentArr)
+    //const titleStr = readFileSync('./config/htmlTitle.json').toString()
+    //const titleArr = JSON.parse(titleStr);
+    const titleArr = fs.readFileSync('./config/htmlTitle.txt')
+        .toString()
+        .split(/\r?\n/)
+        .filter(line => line.trim() !== '');
     const arrLen = contentArr.length;
     const titleLen = titleArr.length;
 
     for (let i = 0; i < contentGenerated; i++) {
         const titleIndex = Math.floor(Math.random() * titleLen);
-        const newArticle = createArticle(contentArr, arrLen, titleArr[titleIndex], contentSectionLimit);
+        const newArticle = createArticle(contentArr, arrLen, titleArr[titleIndex], contentSectionLimit, theme);
         const outputPath = path.join(htmlOutDir, titleArr[titleIndex] + i + ".html");
         fs.writeFileSync(outputPath, newArticle);
         console.log("File replaced: " + titleArr[titleIndex] + i + ".html")
@@ -152,39 +174,45 @@ async function main() {
     while (!isDone) {
         console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         console.log("1. Replace keys in the articles");
-        console.log("2. Replace keys in the articles and prefix keywords to the title");
-        console.log("3. Replace keys in the articles, prefix keywords to the title, and randomize content")
-        console.log("4. Create HTML Content")
-        console.log("5. Exit");
+        console.log("2. Replace keys in the articles and save HTML content");
+        console.log("3. Replace keys in the articles and prefix keywords to the title");
+        console.log("4. Replace keys in the articles, prefix keywords to the title, and randomize content")
+        console.log("5. Create HTML Content")
+        console.log("6. Exit");
 
         const answer = await askQuestion('Command: ');
 
         if (answer === "1") {
             ReplaceFiles();
         } else if (answer === "2") {
-            ReplaceFiles(true);
+            ReplaceFiles(false, false, true);
         } else if (answer === "3") {
-            ReplaceFiles(true, true);
+            ReplaceFiles(true);
         } else if (answer === "4") {
+            ReplaceFiles(true, true);
+        } else if (answer === "5") {
             console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-            console.log ("How many HTML files do you want to generate?");
+            console.log("How many HTML files do you want to generate?");
             const tempContentGenerated = parseInt(await askQuestion('Number of files: '));
             console.log("How many content sections do you want to generate for each HTML file?");
             const tempContentSectionLimit = parseInt(await askQuestion('Number of content sections: '));
+            console.log("What theme do you want to use?");
+            themes.forEach((theme) => console.log(theme));
+            const theme = parseInt(await askQuestion('Theme: '));
 
-            if (tempContentGenerated > 0 && typeof(tempContentGenerated) === 'number') {
+            if (tempContentGenerated > 0 && typeof (tempContentGenerated) === 'number') {
                 contentGenerated = tempContentGenerated;
             } else {
                 console.log("Invalid input for number of files. Defaulting to 10.");
             }
 
-            if (tempContentSectionLimit > 0 && typeof(tempContentSectionLimit) === 'number') {
+            if (tempContentSectionLimit > 0 && typeof (tempContentSectionLimit) === 'number') {
                 contentSectionLimit = tempContentSectionLimit;
             } else {
                 console.log("Invalid input for number of content sections. Defaulting to 5.");
             }
 
-            createHTMLContent(contentGenerated, contentSectionLimit);
+            createHTMLContent(contentGenerated, contentSectionLimit, theme);
         } else {
             isDone = true;
             rl.close();

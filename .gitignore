@@ -5,6 +5,7 @@ out/
 articles/
 keys/
 config/
+static/
 
 # Logs
 logs
