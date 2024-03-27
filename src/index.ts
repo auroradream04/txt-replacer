@@ -130,35 +130,51 @@ function createArticle(articles: string[], arrLen: number, title: string, conten
     return article;
 }
 
-async function createHTMLContent(contentGenerated: number, contentSectionLimit: number, theme: number, domain: string) {
+async function createHTMLContent(contentGenerated: number, contentSectionLimit: number, theme: number, domain: string, useTitle: boolean, startFrom: number = 1) {
     console.log("HTML Content Replacement")
     //const contentStr = readFileSync('./config/htmlContent.json').toString()
     //const contentArr = JSON.parse(contentStr);
-    let sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`
     const contentArr = fs.readFileSync('./config/htmlContent.txt')
-        .toString()
-        .split(/\r?\n/)
-        .filter(line => line.trim() !== '');
+    .toString()
+    .split(/\r?\n/)
+    .filter(line => line.trim() !== '');
     console.log(contentArr)
     //const titleStr = readFileSync('./config/htmlTitle.json').toString()
     //const titleArr = JSON.parse(titleStr);
     const titleArr = fs.readFileSync('./config/htmlTitle.txt')
-        .toString()
-        .split(/\r?\n/)
-        .filter(line => line.trim() !== '');
+    .toString()
+    .split(/\r?\n/)
+    .filter(line => line.trim() !== '');
     const arrLen = contentArr.length;
     const titleLen = titleArr.length;
 
+    let sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`
+    let sitemapIndex = 0;
+
     for (let i = 0; i < contentGenerated; i++) {
-        const titleIndex = Math.floor(Math.random() * titleLen);
-        const newArticle = createArticle(contentArr, arrLen, titleArr[titleIndex], contentSectionLimit, theme);
-        const outputPath = path.join(htmlOutDir, titleArr[titleIndex] + i + ".html");
+        let title;
+        let formattedTitle;
+        if (useTitle) {
+            title = titleArr[Math.floor(Math.random() * titleLen)];
+            formattedTitle = title.replace(/ /g, "-").toLowerCase() + i;
+        } else {
+            title = (startFrom + i).toString();
+            formattedTitle = (startFrom + i).toString();
+        }
+        const newArticle = createArticle(contentArr, arrLen, title, contentSectionLimit, theme);
+        const outputPath = path.join(htmlOutDir, formattedTitle + ".html");
         fs.writeFileSync(outputPath, newArticle);
-        sitemap += `<url><loc>https://${domain}/${titleArr[titleIndex] + i}.html</loc><priority>0.8</priority></url>\n`
-        console.log("File replaced: " + titleArr[titleIndex] + i + ".html")
+        sitemap += `<url><loc>https://${domain}/${formattedTitle}.html</loc><priority>0.8</priority></url>\n`
+        console.log("File replaced: " + formattedTitle + ".html")
+
+        if (i % 29999 === 0 && i !== 0 || i === contentGenerated - 1) {
+            sitemapIndex++;
+            sitemap += `</urlset>`
+            const sitemapPath = sitemapIndex > 1 ? path.join(htmlOutDir, `sitemap${sitemapIndex}.xml`) : path.join(htmlOutDir, `sitemap.xml`);
+            fs.writeFileSync(sitemapPath, sitemap);
+            sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`
+        }
     }
-    sitemap += `</urlset>`
-    fs.writeFileSync(path.join(htmlOutDir, "sitemap.xml"), sitemap);
 }
 
 
@@ -205,6 +221,13 @@ async function main() {
             console.log("What theme do you want to use?");
             themes.forEach((theme) => console.log(theme));
             const theme = parseInt(await askQuestion('Theme: '));
+            console.log("Do you want to use the title keys?");
+            const useTitleQuestion = await askQuestion('Use title keys? (y/n): ');            
+            const useTitle = useTitleQuestion.toLocaleLowerCase() === "y" ? true : false;
+            console.log("Do you want to start from a specific number? (Default is 1)");
+            const startFromQuestion = parseInt(await askQuestion('Start from: '));
+            const startFrom = startFromQuestion > 0 ? startFromQuestion : 1;
+
 
             if (tempContentGenerated > 0 && typeof (tempContentGenerated) === 'number') {
                 contentGenerated = tempContentGenerated;
@@ -218,7 +241,7 @@ async function main() {
                 console.log("Invalid input for number of content sections. Defaulting to 5.");
             }
 
-            createHTMLContent(contentGenerated, contentSectionLimit, theme, domain);
+            createHTMLContent(contentGenerated, contentSectionLimit, theme, domain, useTitle, startFrom);
         } else {
             isDone = true;
             rl.close();

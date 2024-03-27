@@ -1,4 +1,4 @@
-test.html
+test.*
 style.css
 htmlOut/
 out/
@@ -6,6 +6,8 @@ articles/
 keys/
 config/
 static/
+*.rar
+*.exe
 
 # Logs
 logs

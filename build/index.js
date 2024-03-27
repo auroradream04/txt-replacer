@@ -217,9 +217,10 @@ function createArticle(articles, arrLen, title, contentSectionLimit, theme) {
     }
     return article;
 }
-function createHTMLContent(contentGenerated, contentSectionLimit, theme) {
+function createHTMLContent(contentGenerated, contentSectionLimit, theme, domain, useTitle, startFrom) {
+    if (startFrom === void 0) { startFrom = 1; }
     return __awaiter(this, void 0, void 0, function () {
-        var contentArr, titleArr, arrLen, titleLen, i, titleIndex, newArticle, outputPath;
+        var contentArr, titleArr, arrLen, titleLen, sitemap, sitemapIndex, i, title, formattedTitle, newArticle, outputPath, sitemapPath;
         return __generator(this, function (_a) {
             console.log("HTML Content Replacement");
             contentArr = fs_1.default.readFileSync('./config/htmlContent.txt')
@@ -233,12 +234,31 @@ function createHTMLContent(contentGenerated, contentSectionLimit, theme) {
                 .filter(function (line) { return line.trim() !== ''; });
             arrLen = contentArr.length;
             titleLen = titleArr.length;
+            sitemap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n";
+            sitemapIndex = 0;
             for (i = 0; i < contentGenerated; i++) {
-                titleIndex = Math.floor(Math.random() * titleLen);
-                newArticle = createArticle(contentArr, arrLen, titleArr[titleIndex], contentSectionLimit, theme);
-                outputPath = path_1.default.join(htmlOutDir, titleArr[titleIndex] + i + ".html");
+                title = void 0;
+                formattedTitle = void 0;
+                if (useTitle) {
+                    title = titleArr[Math.floor(Math.random() * titleLen)];
+                    formattedTitle = title.replace(/ /g, "-").toLowerCase() + i;
+                }
+                else {
+                    title = (startFrom + i).toString();
+                    formattedTitle = (startFrom + i).toString();
+                }
+                newArticle = createArticle(contentArr, arrLen, title, contentSectionLimit, theme);
+                outputPath = path_1.default.join(htmlOutDir, formattedTitle + ".html");
                 fs_1.default.writeFileSync(outputPath, newArticle);
-                console.log("File replaced: " + titleArr[titleIndex] + i + ".html");
+                sitemap += "<url><loc>https://".concat(domain, "/").concat(formattedTitle, ".html</loc><priority>0.8</priority></url>\n");
+                console.log("File replaced: " + formattedTitle + ".html");
+                if (i % 29999 === 0 && i !== 0 || i === contentGenerated - 1) {
+                    sitemapIndex++;
+                    sitemap += "</urlset>";
+                    sitemapPath = sitemapIndex > 1 ? path_1.default.join(htmlOutDir, "sitemap".concat(sitemapIndex, ".xml")) : path_1.default.join(htmlOutDir, "sitemap.xml");
+                    fs_1.default.writeFileSync(sitemapPath, sitemap);
+                    sitemap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n";
+                }
             }
             return [2 /*return*/];
         });
@@ -255,55 +275,70 @@ console.log("Welcome to txt-replacer tool!");
 console.log("This tool will replace all the keys in the articles with the values from the keys.json file.");
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var answer, tempContentGenerated, _a, tempContentSectionLimit, _b, theme, _c;
-        return __generator(this, function (_d) {
-            switch (_d.label) {
+        var answer, tempContentGenerated, _a, tempContentSectionLimit, _b, domain, theme, _c, useTitleQuestion, useTitle, startFromQuestion, _d, startFrom;
+        return __generator(this, function (_e) {
+            switch (_e.label) {
                 case 0:
-                    if (!!isDone) return [3 /*break*/, 11];
+                    if (!!isDone) return [3 /*break*/, 14];
                     console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
                     console.log("1. Replace keys in the articles");
                     console.log("2. Replace keys in the articles and save HTML content");
                     console.log("3. Replace keys in the articles and prefix keywords to the title");
                     console.log("4. Replace keys in the articles, prefix keywords to the title, and randomize content");
-                    console.log("5. Create HTML Content");
+                    console.log("5. Create HTML Content and sitemap");
                     console.log("6. Exit");
                     return [4 /*yield*/, askQuestion('Command: ')];
                 case 1:
-                    answer = _d.sent();
+                    answer = _e.sent();
                     if (!(answer === "1")) return [3 /*break*/, 2];
                     ReplaceFiles();
-                    return [3 /*break*/, 10];
+                    return [3 /*break*/, 13];
                 case 2:
                     if (!(answer === "2")) return [3 /*break*/, 3];
                     ReplaceFiles(false, false, true);
-                    return [3 /*break*/, 10];
+                    return [3 /*break*/, 13];
                 case 3:
                     if (!(answer === "3")) return [3 /*break*/, 4];
                     ReplaceFiles(true);
-                    return [3 /*break*/, 10];
+                    return [3 /*break*/, 13];
                 case 4:
                     if (!(answer === "4")) return [3 /*break*/, 5];
                     ReplaceFiles(true, true);
-                    return [3 /*break*/, 10];
+                    return [3 /*break*/, 13];
                 case 5:
-                    if (!(answer === "5")) return [3 /*break*/, 9];
+                    if (!(answer === "5")) return [3 /*break*/, 12];
                     console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
                     console.log("How many HTML files do you want to generate?");
                     _a = parseInt;
                     return [4 /*yield*/, askQuestion('Number of files: ')];
                 case 6:
-                    tempContentGenerated = _a.apply(void 0, [_d.sent()]);
+                    tempContentGenerated = _a.apply(void 0, [_e.sent()]);
                     console.log("How many content sections do you want to generate for each HTML file?");
                     _b = parseInt;
                     return [4 /*yield*/, askQuestion('Number of content sections: ')];
                 case 7:
-                    tempContentSectionLimit = _b.apply(void 0, [_d.sent()]);
+                    tempContentSectionLimit = _b.apply(void 0, [_e.sent()]);
+                    console.log("What is your domain name?");
+                    return [4 /*yield*/, askQuestion('Domain: ')];
+                case 8:
+                    domain = _e.sent();
                     console.log("What theme do you want to use?");
                     themes.forEach(function (theme) { return console.log(theme); });
                     _c = parseInt;
                     return [4 /*yield*/, askQuestion('Theme: ')];
-                case 8:
-                    theme = _c.apply(void 0, [_d.sent()]);
+                case 9:
+                    theme = _c.apply(void 0, [_e.sent()]);
+                    console.log("Do you want to use the title keys?");
+                    return [4 /*yield*/, askQuestion('Use title keys? (y/n): ')];
+                case 10:
+                    useTitleQuestion = _e.sent();
+                    useTitle = useTitleQuestion.toLocaleLowerCase() === "y" ? true : false;
+                    console.log("Do you want to start from a specific number? (Default is 1)");
+                    _d = parseInt;
+                    return [4 /*yield*/, askQuestion('Start from: ')];
+                case 11:
+                    startFromQuestion = _d.apply(void 0, [_e.sent()]);
+                    startFrom = startFromQuestion > 0 ? startFromQuestion : 1;
                     if (tempContentGenerated > 0 && typeof (tempContentGenerated) === 'number') {
                         contentGenerated = tempContentGenerated;
                     }
@@ -316,14 +351,14 @@ function main() {
                     else {
                         console.log("Invalid input for number of content sections. Defaulting to 5.");
                     }
-                    createHTMLContent(contentGenerated, contentSectionLimit, theme);
-                    return [3 /*break*/, 10];
-                case 9:
+                    createHTMLContent(contentGenerated, contentSectionLimit, theme, domain, useTitle, startFrom);
+                    return [3 /*break*/, 13];
+                case 12:
                     isDone = true;
                     rl.close();
-                    _d.label = 10;
-                case 10: return [3 /*break*/, 0];
-                case 11: return [2 /*return*/];
+                    _e.label = 13;
+                case 13: return [3 /*break*/, 0];
+                case 14: return [2 /*return*/];
             }
         });
     });
