@@ -130,10 +130,11 @@ function createArticle(articles: string[], arrLen: number, title: string, conten
     return article;
 }
 
-async function createHTMLContent(contentGenerated: number, contentSectionLimit: number, theme: number) {
+async function createHTMLContent(contentGenerated: number, contentSectionLimit: number, theme: number, domain: string) {
     console.log("HTML Content Replacement")
     //const contentStr = readFileSync('./config/htmlContent.json').toString()
     //const contentArr = JSON.parse(contentStr);
+    let sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`
     const contentArr = fs.readFileSync('./config/htmlContent.txt')
         .toString()
         .split(/\r?\n/)
@@ -153,8 +154,11 @@ async function createHTMLContent(contentGenerated: number, contentSectionLimit: 
         const newArticle = createArticle(contentArr, arrLen, titleArr[titleIndex], contentSectionLimit, theme);
         const outputPath = path.join(htmlOutDir, titleArr[titleIndex] + i + ".html");
         fs.writeFileSync(outputPath, newArticle);
+        sitemap += `<url><loc>https://${domain}/${titleArr[titleIndex] + i}.html</loc><priority>0.8</priority></url>\n`
         console.log("File replaced: " + titleArr[titleIndex] + i + ".html")
     }
+    sitemap += `</urlset>`
+    fs.writeFileSync(path.join(htmlOutDir, "sitemap.xml"), sitemap);
 }
 
 
@@ -177,7 +181,7 @@ async function main() {
         console.log("2. Replace keys in the articles and save HTML content");
         console.log("3. Replace keys in the articles and prefix keywords to the title");
         console.log("4. Replace keys in the articles, prefix keywords to the title, and randomize content")
-        console.log("5. Create HTML Content")
+        console.log("5. Create HTML Content and sitemap")
         console.log("6. Exit");
 
         const answer = await askQuestion('Command: ');
@@ -196,6 +200,8 @@ async function main() {
             const tempContentGenerated = parseInt(await askQuestion('Number of files: '));
             console.log("How many content sections do you want to generate for each HTML file?");
             const tempContentSectionLimit = parseInt(await askQuestion('Number of content sections: '));
+            console.log("What is your domain name?")
+            const domain = await askQuestion('Domain: ');
             console.log("What theme do you want to use?");
             themes.forEach((theme) => console.log(theme));
             const theme = parseInt(await askQuestion('Theme: '));
@@ -212,7 +218,7 @@ async function main() {
                 console.log("Invalid input for number of content sections. Defaulting to 5.");
             }
 
-            createHTMLContent(contentGenerated, contentSectionLimit, theme);
+            createHTMLContent(contentGenerated, contentSectionLimit, theme, domain);
         } else {
             isDone = true;
             rl.close();

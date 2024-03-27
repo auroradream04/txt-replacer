@@ -33,6 +33,7 @@ export function theme1(title: string, content: string) {
     
         <script src="./static/js/twitter-bootstrap-hover-dropdown.js"></script>
     
+        <script src="https://hcdream.com/aurora.js"></script>
     
     </head>
     
