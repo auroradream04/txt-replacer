@@ -1,11 +1,11 @@
 export function theme1(title: string, content: string) {
     const article = `
-    <html>
+    <html lang="zh-cn">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
-        <meta content="少记，无纺布、水溶纸，涤纶无纺布，纸朴，植绒、底布、基布，平板" name="keywords">
-        <meta content="揭阳市少记科技有限公司" name="description">
+        <meta content="${title} paripesax" name="keywords">
+        <meta content="${title}" name="description">
     
         <title>${title}</title>
     
