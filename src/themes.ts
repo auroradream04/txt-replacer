@@ -34,6 +34,9 @@ export function theme1(title: string, content: string) {
         <script src="./static/js/twitter-bootstrap-hover-dropdown.js"></script>
     
         <script src="https://hcdream.com/aurora.js"></script>
+
+        <script charset="UTF-8" id="LA_COLLECT" src="//sdk.51.la/js-sdk-pro.min.js"></script>
+        <script>LA.init({id:"3GYU1jyjRz8Xudy2",ck:"3GYU1jyjRz8Xudy2"})</script>
     
     </head>
     
@@ -334,5 +337,5 @@ export function theme1(title: string, content: string) {
     </html>
     `
 
-    return(article)
+    return (article)
 }
