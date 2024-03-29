@@ -165,13 +165,14 @@ async function createHTMLContent(contentGenerated: number, contentSectionLimit: 
         console.log("File created: " + formattedTitle + ".html")
 
         if (i % 29999 === 0 && i !== 0 || i === contentGenerated - 1) {
+            const sitemapFileName = sitemapIndex > 1 ? `sitemap${sitemapIndex}.xml` : `sitemap.xml`
             sitemapIndex++;
             sitemap += `</urlset>`
-            const sitemapPath = sitemapIndex > 1 ? path.join(finalOutDir, `sitemap${sitemapIndex}.xml`) : path.join(finalOutDir, `sitemap.xml`);
+            const sitemapPath = path.join(finalOutDir, sitemapFileName);
             fs.writeFileSync(sitemapPath, sitemap);
             console.log("Sitemap created: " + sitemapPath)
             sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`
-            robots += `Sitemap: https://${domain}/${sitemapPath}\n`
+            robots += `Sitemap: https://${domain}/${sitemapFileName}\n`
         }
     }
 

@@ -219,7 +219,7 @@ function createArticle(articles, arrLen, title, contentSectionLimit, theme) {
 function createHTMLContent(contentGenerated, contentSectionLimit, theme, domain, useTitle, startFrom, finalOutDir) {
     if (startFrom === void 0) { startFrom = 1; }
     return __awaiter(this, void 0, void 0, function () {
-        var contentArr, titleArr, arrLen, titleLen, sitemap, sitemapIndex, i, title, formattedTitle, newArticle, outputPath, sitemapPath;
+        var contentArr, titleArr, arrLen, titleLen, sitemap, sitemapIndex, robots, i, title, formattedTitle, newArticle, outputPath, sitemapFileName, sitemapPath, robotsPath;
         return __generator(this, function (_a) {
             console.log("HTML Content Replacement");
             contentArr = fs_1.default.readFileSync('./config/htmlContent.txt')
@@ -235,6 +235,7 @@ function createHTMLContent(contentGenerated, contentSectionLimit, theme, domain,
             titleLen = titleArr.length;
             sitemap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n";
             sitemapIndex = 0;
+            robots = "User-agent: *\nAllow: /\n\n";
             for (i = 0; i < contentGenerated; i++) {
                 title = titleArr[Math.floor(Math.random() * titleLen)];
                 formattedTitle = void 0;
@@ -251,14 +252,18 @@ function createHTMLContent(contentGenerated, contentSectionLimit, theme, domain,
                 sitemap += "<url><loc>https://".concat(domain, "/").concat(formattedTitle, ".html</loc><priority>0.8</priority></url>\n");
                 console.log("File created: " + formattedTitle + ".html");
                 if (i % 29999 === 0 && i !== 0 || i === contentGenerated - 1) {
+                    sitemapFileName = sitemapIndex > 1 ? "sitemap".concat(sitemapIndex, ".xml") : "sitemap.xml";
                     sitemapIndex++;
                     sitemap += "</urlset>";
-                    sitemapPath = sitemapIndex > 1 ? path_1.default.join(finalOutDir, "sitemap".concat(sitemapIndex, ".xml")) : path_1.default.join(finalOutDir, "sitemap.xml");
+                    sitemapPath = path_1.default.join(finalOutDir, sitemapFileName);
                     fs_1.default.writeFileSync(sitemapPath, sitemap);
                     console.log("Sitemap created: " + sitemapPath);
                     sitemap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n";
+                    robots += "Sitemap: https://".concat(domain, "/").concat(sitemapFileName, "\n");
                 }
             }
+            robotsPath = path_1.default.join(finalOutDir, "robots.txt");
+            fs_1.default.writeFileSync(robotsPath, robots);
             return [2 /*return*/];
         });
     });
